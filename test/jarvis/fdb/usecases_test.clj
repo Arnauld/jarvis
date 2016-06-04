@@ -4,7 +4,8 @@
             [jarvis.fdb.constructs :as c]
             [jarvis.fdb.graph :as g]
             [jarvis.fdb.query :as q]
-            [jarvis.fdb.manage :as m])
+            [jarvis.fdb.manage :as m]
+            [jarvis.fdb.storage :as s])
   (:import (jarvis.fdb.storage Intercept InMemory)))
 
 
@@ -14,9 +15,12 @@
           __ (m/drop-db-conn db-name)
           __ (m/register-db db-name (c/make-db (Intercept.
                                                  (InMemory.)
-                                                 (fn [what chain]
+                                                 (fn [storage what chain]
                                                    (println ">>" what)
-                                                   (chain)))))
+                                                   (let [n (chain)]
+                                                     (if (= :write-entity what)
+                                                       (s/dump (:delegate storage)))
+                                                     n)))))
           db-conn (m/get-db-conn db-name)
           __ (println "db::" db-conn)
           ;
@@ -39,6 +43,11 @@
                           (db/update-entity :jarvis :person/labels #{:virtual} :db/remove))
           entity3 (c/entity-at (m/db-from-conn db-conn) :jarvis)
           ;;
+          __ (db/transact db-conn
+                          (db/update-entity :jarvis :person/skills #{:organization}))
+          entity4 (c/entity-at (m/db-from-conn db-conn) :jarvis)
+          __ (s/dump (c/storage-of (m/db-from-conn db-conn)))
+          ;;
           ]
       (is (= "jarvis" (c/get-attr entity0 :person/name)))
       (is (= #{:assistant :virtual} (c/get-attr entity0 :person/labels)))
@@ -46,4 +55,5 @@
       (is (= #{:assistant :virtual :operator} (c/get-attr entity1 :person/labels)))
       (is (= #{:bot :virtual} (c/get-attr entity2 :person/labels)))
       (is (= #{:bot} (c/get-attr entity3 :person/labels)))
+      (is (= #{:organization} (c/get-attr entity4 :person/skills)))
       )))

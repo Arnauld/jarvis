@@ -34,10 +34,16 @@
                        (make-index #(vector %3 %1 %2) #(vector %2 %3 %1) always) ; VEAT - for filtering
                        (make-index #(vector %1 %2 %3) #(vector %1 %2 %3) always))] ; EAVT - for filtering
                     0 0))))
+
+(defn storage-of
+  "the underlying storage at the given time (defaults to the latest time)"
+  ([db] (storage-of db (:curr-time db)))
+  ([db ts] (get-in db [:layers ts :storage])))
+
 (defn entity-at
   "the entity with the given ent-id at the given time (defaults to the latest time)"
   ([db ent-id] (entity-at db (:curr-time db) ent-id))
-  ([db ts ent-id] (get-entity (get-in db [:layers ts :storage]) ent-id)))
+  ([db ts ent-id] (get-entity (storage-of db ts) ent-id)))
 
 (defn attr-at
   "The attribute of an entity at a given time (defaults to recent time)"
