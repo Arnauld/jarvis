@@ -48,7 +48,8 @@
                           (db/update-entity :jarvis :person/skills #{:organization}))
           entity4 (c/entity-at (m/db-from-conn db-conn) :jarvis)
           ;;
-          __ (pprint (m/db-from-conn db-conn))
+          __ (binding [*print-meta* true]
+               (pprint (m/db-from-conn db-conn))
           ]
       (is (= "jarvis" (c/get-attr entity0 :person/name)))
       (is (= #{:assistant :virtual} (c/get-attr entity0 :person/labels)))
