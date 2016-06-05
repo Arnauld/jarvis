@@ -2,7 +2,8 @@
   [:use [jarvis.fdb storage query constructs]]
   [:require [clojure.set :as CS :only (union difference intersection)]])
 
-(defn- next-ts [db] (inc (:curr-time db)))
+(defn- next-ts [db]
+  (inc (:curr-time db)))
 
 (defn- next-id
   "returns a pair composed of the id to use for the given entity and the next free running id in the database"
@@ -60,14 +61,18 @@
         new-layer (reduce add-fn layer-with-updated-storage (indices))]
     (assoc db :layers (conj (:layers db) new-layer) :top-id next-top-id)))
 
-(defn add-entities [db ents-seq] (reduce add-entity db ents-seq))
+(defn add-entities [db ents-seq]
+  (reduce add-entity db ents-seq))
 
-(defn- update-attr-modification-time [attr new-ts] (assoc attr :ts new-ts :prev-ts (:ts attr)))
+(defn- update-attr-modification-time [attr new-ts]
+  (assoc attr :ts new-ts :prev-ts (:ts attr)))
 
 (defn- update-attr [attr new-val new-ts operation]
-  {:pre [(if (single? attr)
+  {:pre [(some? attr)
+         (if (single? attr)
            (contains? #{:db/reset-to :db/remove} operation)
            (contains? #{:db/reset-to :db/add :db/remove} operation))]}
+  (println ">>>>>" attr)
   (-> attr
       (update-attr-modification-time new-ts)
       (update-attr-value new-val operation)))
@@ -154,7 +159,9 @@
       (recur rst-ops (apply (first op) transacted (rest op)))
       (let [initial-layer (:layers initial-db)
             new-layer (last (:layers transacted))]
-        (assoc initial-db :layers (conj initial-layer new-layer) :curr-time (next-ts initial-db) :top-id (:top-id transacted))))))
+        (assoc initial-db :layers (conj initial-layer new-layer)
+                          :curr-time (next-ts initial-db)
+                          :top-id (:top-id transacted))))))
 
 (defmacro _transact [db exec-fn & ops]
   (when ops

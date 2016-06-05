@@ -7,6 +7,10 @@
 (defrecord Entity [id attrs])
 (defrecord Attr [name value ts prev-ts])
 
+(defn dump [database]
+  ()
+  )
+
 (defn make-index
   "An index is a tree, implemented by nested maps, each level corresponds to either entity-id, attribute name or a value, where the leaves of the tree are sets.
   The order of the levels changes from one index to another, to allow different querying on different indices. It is possible to reorder a path in the tree to an EAV structure

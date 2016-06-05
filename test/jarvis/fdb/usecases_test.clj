@@ -6,7 +6,8 @@
             [jarvis.fdb.query :as q]
             [jarvis.fdb.manage :as m]
             [jarvis.fdb.storage :as s])
-  (:import (jarvis.fdb.storage Intercept InMemory)))
+  (:import (jarvis.fdb.storage Intercept InMemory))
+  (:use [clojure.pprint :only [pprint]]))
 
 
 (deftest a-usecase
@@ -46,8 +47,8 @@
           __ (db/transact db-conn
                           (db/update-entity :jarvis :person/skills #{:organization}))
           entity4 (c/entity-at (m/db-from-conn db-conn) :jarvis)
-          __ (s/dump (c/storage-of (m/db-from-conn db-conn)))
           ;;
+          __ (pprint (m/db-from-conn db-conn))
           ]
       (is (= "jarvis" (c/get-attr entity0 :person/name)))
       (is (= #{:assistant :virtual} (c/get-attr entity0 :person/labels)))
