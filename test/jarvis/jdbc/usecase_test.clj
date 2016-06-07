@@ -3,7 +3,8 @@
            [jarvis.core :refer :all]
            [clojure.java.jdbc :as jdbc]
            [java-jdbc.ddl :as ddl]
-           [java-jdbc.sql :as sql])
+           [java-jdbc.sql :as sql]
+           [jarvis.event.core :refer :all])
   (:import (java.sql SQLException)))
 
 (def db-spec {:classname   "org.postgresql.Driver"

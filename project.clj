@@ -7,4 +7,6 @@
                  ; --- SQL
                  [org.clojure/java.jdbc "0.3.0"]
                  [java-jdbc/dsl "0.1.0"]
-                 [org.postgresql/postgresql "9.4.1208"]])
+                 [org.postgresql/postgresql "9.4.1208"]]
+  :source-paths      ["src/clj"]
+  :java-source-paths ["src/java"])
