@@ -16,21 +16,20 @@
            (filter (fn [event] (and (<= min (:version event))
                                     (>= max (:version event))))))))
   (append-events [store stream-id expected-version events]
-    (reduce (fn [store event]
-              (let [stream (get store stream-id empty-stream)
-                    version (:version stream)
-                    new-version (inc version)
-                    new-event (assoc event :version new-version
-                                           :stream-id stream-id)
-                    new-events (conj (:events stream) new-event)
-                    new-stream (assoc stream :events new-events
-                                             :version new-version)]
-                (when-not (= version expected-version)
-                  (MidAirCollision.
-                    (str {:stream-id        stream-id
-                          :expected-version expected-version
-                          :actual-version   version})))
-                (assoc store stream-id new-stream)))
-            store
-            events)))
+    (let [stream (get store stream-id empty-stream)
+          actual-version (:version stream)
+          [new-events new-version] (reduce (fn [[events event-version] event]
+                                             [(conj events
+                                                    (assoc event :version (inc event-version)
+                                                                 :stream-id stream-id)) (inc event-version)])
+                                           [(:events stream) actual-version]
+                                           events)
+          new-stream (assoc stream :events new-events
+                                   :version new-version)]
+      (when-not (= actual-version expected-version)
+        (throw
+          (MidAirCollision. {:stream-id        stream-id
+                             :expected-version expected-version
+                             :actual-version   (:version stream)})))
+      (assoc store stream-id new-stream))))
 
