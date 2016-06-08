@@ -5,27 +5,34 @@
   (stream-of [store stream-id opts])
   (append-events [store stream-id expected-version events]))
 
+(defrecord Stream [stream-id version events])
+
 (def empty-stream {:version 0 :events []})
 
 (defrecord InMemory []
   EventStore
   (stream-of [store stream-id opts]
-    (let [min (or (:min-version opts) 0)
-          max (or (:max-version opts) Integer/MAX_VALUE)]
-      (->> (get-in store [stream-id :events])
-           (filter (fn [event] (and (<= min (:version event))
-                                    (>= max (:version event))))))))
+    (let [min (or (:min-sequence opts) 0)
+          max (or (:max-sequence opts) Integer/MAX_VALUE)
+          stream (get store stream-id)]
+      (if stream
+        (Stream. stream-id
+                 (:version stream)
+                 (->> (:events stream)
+                      (filter (fn [event] (and (<= min (:sequence event))
+                                               (>= max (:sequence event)))))))
+        nil)))
   (append-events [store stream-id expected-version events]
     (let [stream (get store stream-id empty-stream)
           actual-version (:version stream)
           [new-events new-version] (reduce (fn [[events event-version] event]
                                              [(conj events
-                                                    (assoc event :version (inc event-version)
-                                                                 :stream-id stream-id)) (inc event-version)])
+                                                    {:stream-id stream-id
+                                                     :sequence  (inc event-version)
+                                                     :data      event}) (inc event-version)])
                                            [(:events stream) actual-version]
                                            events)
-          new-stream (assoc stream :events new-events
-                                   :version new-version)]
+          new-stream (Stream. stream-id new-version new-events)]
       (when-not (= actual-version expected-version)
         (throw
           (MidAirCollision. {:stream-id        stream-id
