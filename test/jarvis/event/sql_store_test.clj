@@ -48,6 +48,19 @@
             stream (stream-of store "7" {:max-version 1})]
         (is (nil? stream))))
 
+
+    (testing "retrieve empty events of an empty version range"
+      (let [store (-> (reset-event-store db-spec)
+                      (append-events "7" 0
+                                     [{:type :created}
+                                      {:type :name-changed :data {:name "jarvis"}}
+                                      {:type :skills-added :data #{:java}}]))
+            stream (stream-of store "7" {:min-sequence 7})]
+        (is (not (nil? stream)))
+        (is (= "7" (:stream-id stream)))
+        (is (= 3 (:version stream)))
+        (is (= [] (:events stream)))))
+
     (testing "mid-air-collision when expected-version is invalid"
       (let [store (-> (reset-event-store db-spec)
                       (append-events "7" 0

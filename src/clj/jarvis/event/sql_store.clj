@@ -20,7 +20,7 @@
 (defn- stream-version [db-spec stream-id]
   (jdbc/query db-spec
               ["select max(version) from events where stream_id = ?" (str stream-id)]
-              :row-fn #(or (:max %) 0)
+              :row-fn #(:max %)
               :result-set-fn first))
 
 (defrecord SqlStore [db-spec]
@@ -33,13 +33,14 @@
                              :row-fn (fn [r]
                                        {:stream-id (:stream_id r)
                                         :sequence  (:version r)
-                                        :event     (clojure.edn/read-string (:event r))}))]
-      (if (seq events)
-        (Stream. stream-id (stream-version db-spec stream-id) events)
+                                        :event     (clojure.edn/read-string (:event r))}))
+          stream-version (stream-version db-spec stream-id)]
+      (if stream-version
+        (Stream. stream-id stream-version events)
         nil)))
 
   (append-events [store stream-id expected-version events]
-    (let [actual-version (stream-version db-spec stream-id)]
+    (let [actual-version (or 0 (stream-version db-spec stream-id))]
       (when-not (= actual-version expected-version)
         (throw
           (MidAirCollision. {:stream-id        stream-id

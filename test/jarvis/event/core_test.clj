@@ -33,6 +33,11 @@
           stream (stream-of store 7 {:max-version 1})]
       (is (nil? stream))))
 
+  (testing "retrieve empty events of an unknown stream"
+    (let [store (InMemory.)
+          stream (stream-of store 7 {:max-version 1})]
+      (is (nil? stream))))
+
   (testing "mid-air-collision when expected-version is invalid"
     (let [store (-> (InMemory.)
                     (append-events 7 0
