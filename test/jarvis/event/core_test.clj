@@ -18,25 +18,32 @@
           stream1 (stream-of store 7 {:max-sequence 1})
           stream2 (stream-of store 7 {:min-sequence 2 :max-sequence 3})]
       ;(pprint store)
-      (is (= [{:stream-id 7 :sequence 1 :data {:type :created}}]
+      (is (= [{:stream-id "7" :sequence 1 :data {:type :created}}]
              (:events stream1)))
-      (is (= [{:stream-id 7 :sequence 2 :data {:type :name-changed :data {:name "jarvis"}}}
-              {:stream-id 7 :sequence 3 :data {:type :skills-added :data #{:java}}}]
+      (is (= [{:stream-id "7" :sequence 2 :data {:type :name-changed :data {:name "jarvis"}}}
+              {:stream-id "7" :sequence 3 :data {:type :skills-added :data #{:java}}}]
              (:events stream2)))
       (is (= 5 (:version stream1)))
       (is (= 5 (:version stream2)))
-      (is (= 7 (:stream-id stream1)))
-      (is (= 7 (:stream-id stream2)))))
+      (is (= "7" (:stream-id stream1)))
+      (is (= "7" (:stream-id stream2)))))
 
   (testing "retrieve events of an unknown stream"
     (let [store (InMemory.)
-          stream (stream-of store 7 {:max-sequence 1})]
+          stream (stream-of store "7" {:max-sequence 1})]
       (is (nil? stream))))
 
-  (testing "retrieve empty events of an unknown stream"
-    (let [store (InMemory.)
-          stream (stream-of store 7 {:min-sequence 7})]
-      (is (nil? stream))))
+  (testing "retrieve empty events of an empty version range"
+    (let [store (-> (InMemory.)
+                    (append-events "7" 0
+                                   [{:type :created}
+                                    {:type :name-changed :data {:name "jarvis"}}
+                                    {:type :skills-added :data #{:java}}]))
+          stream (stream-of store "7" {:min-sequence 7})]
+      (is (not (nil? stream)))
+      (is (= "7" (:stream-id stream)))
+      (is (= 3 (:version stream)))
+      (is (= [] (:events stream)))))
 
   (testing "mid-air-collision when expected-version is invalid"
     (let [store (-> (InMemory.)
