@@ -41,13 +41,10 @@
       (is (= 7 (:stream-id stream1)))
       (is (= 7 (:stream-id stream2))))
 
-
-
     (testing "retrieve events of an unknown stream"
       (let [store (reset-event-store db-spec)
             stream (stream-of store "7" {:max-version 1})]
         (is (nil? stream))))
-
 
     (testing "retrieve empty events of an empty version range"
       (let [store (-> (reset-event-store db-spec)

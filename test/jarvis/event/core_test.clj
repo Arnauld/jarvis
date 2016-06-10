@@ -30,12 +30,12 @@
 
   (testing "retrieve events of an unknown stream"
     (let [store (InMemory.)
-          stream (stream-of store 7 {:max-version 1})]
+          stream (stream-of store 7 {:max-sequence 1})]
       (is (nil? stream))))
 
   (testing "retrieve empty events of an unknown stream"
     (let [store (InMemory.)
-          stream (stream-of store 7 {:max-version 1})]
+          stream (stream-of store 7 {:min-sequence 7})]
       (is (nil? stream))))
 
   (testing "mid-air-collision when expected-version is invalid"
