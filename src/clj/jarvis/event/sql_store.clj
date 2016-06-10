@@ -32,11 +32,11 @@
                              ["select * from events where stream_id = ? and ? <= version and version <= ? order by version" (str stream-id) min max]
                              :row-fn (fn [r]
                                        {:stream-id (:stream_id r)
-                                        :sequence (:version r)
-                                        :event (clojure.edn/read-string (:event r))}
-                                       ))]
-      (println "stream >> [" min "," max "] >>" events)
-      (Stream. stream-id (stream-version db-spec stream-id) events)))
+                                        :sequence  (:version r)
+                                        :event     (clojure.edn/read-string (:event r))}))]
+      (if (seq events)
+        (Stream. stream-id (stream-version db-spec stream-id) events)
+        nil)))
 
   (append-events [store stream-id expected-version events]
     (let [actual-version (stream-version db-spec stream-id)]

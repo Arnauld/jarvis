@@ -39,7 +39,7 @@
                                    [{:type :created}
                                     {:type :name-changed :data {:name "jarvis"}}
                                     {:type :skills-added :data #{:java}}]))]
-      (pprint store)
+      ;(pprint store)
       (is (thrown? MidAirCollision
                    (append-events store 7 1
                                   [{:type :skills-added :data #{:clojure :erlang}}]))))))
