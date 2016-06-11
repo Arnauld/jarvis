@@ -18,7 +18,7 @@
     (dosync
       (alter listeners disj listener))))
 
-(defn create-in-memory-event-bus []
+(defn create-in-memory []
   (RefBased. (ref #{})))
 
 

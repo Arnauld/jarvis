@@ -8,7 +8,7 @@
 (deftest in-memory-event-bus
   (testing "register listeners and publish..."
     (let [
-          bus (create-in-memory-event-bus)
+          bus (create-in-memory)
           listener-ref1 (atom nil)
           listener-ref2 (atom nil)
           listener1 (create-listener listener-ref1)
@@ -28,8 +28,8 @@
 
   (testing "register listener on different bus..."
     (let [
-          bus1 (create-in-memory-event-bus)
-          bus2 (create-in-memory-event-bus)
+          bus1 (create-in-memory)
+          bus2 (create-in-memory)
           listener-ref1 (atom nil)
           listener-ref2 (atom nil)
           listener1 (create-listener listener-ref1)
