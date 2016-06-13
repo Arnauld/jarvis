@@ -13,10 +13,10 @@
 (defn now []
   (Date.))
 
-(defn publish [events]
+(defn publish! [events]
   (println "publishing" events))
 
-(defn schedule-reminder [ref schedule]
+(defn schedule-reminder! [ref schedule]
   (println "scheduling" ref "in" schedule))
 
 (defn- validate-or-fail [spec what]
@@ -81,8 +81,8 @@
                                  :opt-un [:jarvis.task/description :jarvis.task/status :jarvis.task/priority]))
 
 (defrecord Task [ref name description status priority labels])
-(defrecord TaskCreated [task-ref task when])
-(defrecord TaskScheduled [task-ref schedule when])
+(defrecord TaskCreated [task when])
+(defrecord TaskScheduled [ref schedule when])
 
 (defn new-task [ref name
                 & {:keys [description status priority labels]
@@ -95,22 +95,22 @@
 (defn should-schedule-task? [task-status]
   (not (contains? [:terminated :cancelled] task-status)))
 
-(defn schedule-task [task schedule]
+(defn schedule-task! [task schedule]
   (if (and (should-schedule-task? (:status task))
            (not= :none schedule))
     (do
-      (schedule-reminder (:ref task) schedule)
+      (schedule-reminder! (:ref task) schedule)
       [(TaskScheduled. (:ref task) schedule (now))])
     []))
 
-(defn create-task [^String name
-                   & details]
+(defn create-task! [^String name
+                    & details]
   (let [{:keys [reminder]
          :or   {reminder :none}} details
         ref (new-ref :task (new-id))
         task (apply new-task ref name details)
         events (-> []
-                   (conj (TaskCreated. ref task (now)))
-                   (into (schedule-task task reminder)))]
-    (publish events)
+                   (conj (TaskCreated. task (now)))
+                   (into (schedule-task! task reminder)))]
+    (publish! events)
     task))

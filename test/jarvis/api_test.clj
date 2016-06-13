@@ -30,9 +30,21 @@
 
 (deftest event-test
   (testing "event specs - supported creation"
-    (let [task (create-task "Definir les TOs"
-                            :description "Qui, quoi, quand..."
-                            :labels #{:to})]
+    (let [task (create-task! "Definir les TOs"
+                             :description "Qui, quoi, quand..."
+                             :labels #{:to})]
+      (is (= :task (:type (:ref task))))
+      (is (= "Definir les TOs" (:name task)))
+      (is (= "Qui, quoi, quand..." (:description task)))
+      (is (= :normal (:priority task)))
+      (is (= :not-started (:status task)))
+      (is (= #{:to} (:labels task)))
+      ))
+  (testing "event specs with reminder"
+    (let [task (create-task! "Definir les TOs"
+                             :description "Qui, quoi, quand..."
+                             :labels #{:to}
+                             :reminder :tomorrow)]
       (is (= :task (:type (:ref task))))
       (is (= "Definir les TOs" (:name task)))
       (is (= "Qui, quoi, quand..." (:description task)))
