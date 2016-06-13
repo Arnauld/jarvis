@@ -37,6 +37,6 @@
       (is (= "Definir les TOs" (:name task)))
       (is (= "Qui, quoi, quand..." (:description task)))
       (is (= :normal (:priority task)))
-      (println ">>>" task)
-
+      (is (= :not-started (:status task)))
+      (is (= #{:to} (:labels task)))
       )))

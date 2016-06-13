@@ -13,6 +13,9 @@
 (defn now []
   (Date.))
 
+(defn publish [events]
+  (println "publishing" events))
+
 (defn schedule-reminder [ref schedule]
   (println "scheduling" ref "in" schedule))
 
@@ -72,23 +75,42 @@
                              :pending
                              :in-progress
                              :not-started})
+(s/def :jarvis.task/labels (s/coll-of keyword? #{}))
 (s/def :jarvis.task/priority #{:low :normal :high})
 (s/def :jarvis.task/spec (s/keys :req-un [:jarvis.task/ref :jarvis.task/name]
                                  :opt-un [:jarvis.task/description :jarvis.task/status :jarvis.task/priority]))
 
-(defrecord Task [ref name description status priority])
+(defrecord Task [ref name description status priority labels])
+(defrecord TaskCreated [task-ref task when])
+(defrecord TaskScheduled [task-ref schedule when])
 
 (defn new-task [ref name
-                & {:keys [description status priority] :or {description ""
-                                                            status      :not-started
-                                                            priority    :normal}}]
-  (validate-or-fail :jarvis.task/spec (Task. ref name description status priority)))
+                & {:keys [description status priority labels]
+                   :or   {description ""
+                          status      :not-started
+                          priority    :normal
+                          labels      #{}}}]
+  (validate-or-fail :jarvis.task/spec (Task. ref name description status priority labels)))
 
 (defn should-schedule-task? [task-status]
   (not (contains? [:terminated :cancelled] task-status)))
 
+(defn schedule-task [task schedule]
+  (if (and (should-schedule-task? (:status task))
+           (not= :none schedule))
+    (do
+      (schedule-reminder (:ref task) schedule)
+      [(TaskScheduled. (:ref task) schedule (now))])
+    []))
+
 (defn create-task [^String name
                    & details]
-  (let [ref (new-ref :task (new-id))
-        task (apply new-task ref name details)]
+  (let [{:keys [reminder]
+         :or   {reminder :none}} details
+        ref (new-ref :task (new-id))
+        task (apply new-task ref name details)
+        events (-> []
+                   (conj (TaskCreated. ref task (now)))
+                   (into (schedule-task task reminder)))]
+    (publish events)
     task))
