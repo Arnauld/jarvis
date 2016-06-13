@@ -25,5 +25,18 @@
       (is (= ref (:ref event)))
       (is (= :task/created (:type event)))
       (is (after-or-equals? nowP (:timestamp event)))
-      (is (after-or-equals? (:timestamp event) nowA)
-          ))))
+      (is (after-or-equals? (:timestamp event) nowA))
+      )))
+
+(deftest event-test
+  (testing "event specs - supported creation"
+    (let [task (create-task "Definir les TOs"
+                            :description "Qui, quoi, quand..."
+                            :labels #{:to})]
+      (is (= :task (:type (:ref task))))
+      (is (= "Definir les TOs" (:name task)))
+      (is (= "Qui, quoi, quand..." (:description task)))
+      (is (= :normal (:priority task)))
+      (println ">>>" task)
+
+      )))

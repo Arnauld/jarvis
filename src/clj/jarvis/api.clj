@@ -64,34 +64,31 @@
 ;;---------------------------------------------------------
 
 (s/def :jarvis.task/ref :jarvis.ref/spec)
+(s/def :jarvis.task/name string?)
+(s/def :jarvis.task/description string?)
 (s/def :jarvis.task/status #{:terminated
                              :cancelled
                              :delayed
                              :pending
                              :in-progress
                              :not-started})
-(s/def :jarvis.task/name string?)
-(s/def :jarvis.task/description string?)
 (s/def :jarvis.task/priority #{:low :normal :high})
 (s/def :jarvis.task/spec (s/keys :req-un [:jarvis.task/ref :jarvis.task/name]
                                  :opt-un [:jarvis.task/description :jarvis.task/status :jarvis.task/priority]))
+
+(defrecord Task [ref name description status priority])
+
+(defn new-task [ref name
+                & {:keys [description status priority] :or {description ""
+                                                            status      :not-started
+                                                            priority    :normal}}]
+  (validate-or-fail :jarvis.task/spec (Task. ref name description status priority)))
 
 (defn should-schedule-task? [task-status]
   (not (contains? [:terminated :cancelled] task-status)))
 
 (defn create-task [^String name
-                   ^String description
-                   & {:keys [sub-task-of reminder priority status] :or {priority    100
-                                                                        sub-task-of nil
-                                                                        status      :status/not-started}}]
-  (let [task-ref (new-ref :task (new-id))
-        task {:ref              task-ref
-              :task/name        name
-              :task/description description
-              :task/priority    priority
-              :task/status      status}
-        schedule (or reminder :time/tomorrow)]
-    (if (and (should-schedule-task? status)
-             (not (= schedule :time/none)))
-      (schedule-reminder task-ref schedule))
-    task-ref))
+                   & details]
+  (let [ref (new-ref :task (new-id))
+        task (apply new-task ref name details)]
+    task))
